@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder.WatchKit.Storyboard" version="3.0" toolsVersion="17701" targetRuntime="watchKit" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="AgC-eL-Hgc">
+    <device id="watch38"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17703"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBWatchKitPlugin" version="17500"/>
+    </dependencies>
+    <scenes>
+        <!--Interface Controller-->
+        <scene sceneID="aou-V4-d1y">
+            <objects>
+                <controller id="AgC-eL-Hgc" customClass="InterfaceController" customModuleProvider="target">
+                    <items>
+                        <label alignment="center" text="Hermit Weekend" id="Ygk-7D-Yd1">
+                            <fontDescription key="font" style="UICTFontTextStyleHeadline"/>
+                        </label>
+                        <label alignment="center" text="Status" id="Zcf-Jb-Fgx"/>
+                        <group width="1" alignment="left" layout="vertical" spacing="8" id="Aqj-Ld-Zcg">
+                            <items>
+                                <button width="1" alignment="center" title="Record" id="Aqw-Kd-Lp2">
+                                    <color key="backgroundColor" red="0.38431372549019605" green="0.0" blue="0.9333333333333333" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                    <connections>
+                                        <action selector="recordButtonTapped" destination="AgC-eL-Hgc" id="Aqw-Kd-Lp3"/>
+                                    </connections>
+                                </button>
+                                <label alignment="left" numberOfLines="0" text="Transcription" id="Aqw-Kd-Lp4"/>
+                                <button width="1" alignment="center" title="Send to iPhone" enabled="NO" id="Aqw-Kd-Lp5">
+                                    <color key="backgroundColor" red="0.0" green="0.47843137254901963" blue="1.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                    <connections>
+                                        <action selector="sendButtonTapped" destination="AgC-eL-Hgc" id="Aqw-Kd-Lp6"/>
+                                    </connections>
+                                </button>
+                            </items>
+                        </group>
+                    </items>
+                    <connections>
+                        <outlet property="recordButton" destination="Aqw-Kd-Lp2" id="Aqw-Kd-Lp7"/>
+                        <outlet property="statusLabel" destination="Zcf-Jb-Fgx" id="Aqw-Kd-Lp8"/>
+                        <outlet property="transcriptionLabel" destination="Aqw-Kd-Lp4" id="Aqw-Kd-Lp9"/>
+                        <outlet property="sendButton" destination="Aqw-Kd-Lp5" id="Aqw-Kd-Lpa"/>
+                    </connections>
+                </controller>
+            </objects>
+            <point key="canvasLocation" x="220" y="345"/>
+        </scene>
+    </scenes>
+</document> 
