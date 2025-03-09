@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert, Share, Platform } from 'react-native';
-import { Button, Text, TextInput, ActivityIndicator, IconButton, Chip, Divider, Menu } from 'react-native-paper';
+import { Button, Text, TextInput, ActivityIndicator, IconButton, Chip, Divider, Menu, Surface, Badge } from 'react-native-paper';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../App';
@@ -10,6 +10,7 @@ import Markdown from 'react-native-markdown-display';
 import { Note } from './NotesListScreen';
 import { generateSummary } from '../utils/summarization';
 import MindMap from '../components/MindMap';
+import iCloudStorage from '../utils/iCloudStorage';
 
 type NoteViewScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'NoteView'>;
@@ -27,6 +28,32 @@ const NoteViewScreen: React.FC<NoteViewScreenProps> = ({ navigation, route }) =>
   const [activeTab, setActiveTab] = useState<'content' | 'summary' | 'mindmap'>('content');
   const [menuVisible, setMenuVisible] = useState(false);
   const [summary, setSummary] = useState('');
+  const [iCloudSynced, setICloudSynced] = useState(false);
+  const [iCloudAvailable, setICloudAvailable] = useState(false);
+  const [iCloudSyncEnabled, setICloudSyncEnabled] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  // Check iCloud availability
+  useEffect(() => {
+    const checkICloud = async () => {
+      if (Platform.OS === 'ios') {
+        const available = await iCloudStorage.isAvailable();
+        setICloudAvailable(available);
+        
+        // Get user preference for iCloud sync
+        const syncPref = await AsyncStorage.getItem('iCloudSyncEnabled');
+        setICloudSyncEnabled(syncPref !== 'false');
+        
+        // Check if note is synced
+        if (available && noteId) {
+          const synced = await iCloudStorage.isNoteSynced(noteId);
+          setICloudSynced(synced);
+        }
+      }
+    };
+    
+    checkICloud();
+  }, [noteId]);
 
   // Load note data
   useEffect(() => {
@@ -126,6 +153,12 @@ const NoteViewScreen: React.FC<NoteViewScreenProps> = ({ navigation, route }) =>
         // Update summary
         const noteSummary = generateSummary(editedContent, 200);
         setSummary(noteSummary);
+        
+        // Sync to iCloud if available and enabled
+        if (Platform.OS === 'ios' && iCloudAvailable && iCloudSyncEnabled) {
+          await iCloudStorage.saveNote(updatedNote);
+          setICloudSynced(true);
+        }
       }
       
       setIsEditing(false);
@@ -158,6 +191,28 @@ const NoteViewScreen: React.FC<NoteViewScreenProps> = ({ navigation, route }) =>
     } catch (error) {
       console.error('Error sharing note:', error);
       Alert.alert('Error', 'Failed to share note. Please try again.');
+    }
+  };
+
+  // Sync note to iCloud
+  const syncToiCloud = async () => {
+    if (!note || !iCloudAvailable || !iCloudSyncEnabled) return;
+    
+    try {
+      setIsSyncing(true);
+      const success = await iCloudStorage.saveNote(note);
+      setICloudSynced(success);
+      setIsSyncing(false);
+      
+      if (success) {
+        Alert.alert('Success', 'Note synced to iCloud successfully.');
+      } else {
+        Alert.alert('Error', 'Failed to sync note to iCloud. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error syncing to iCloud:', error);
+      setIsSyncing(false);
+      Alert.alert('Error', 'Failed to sync note to iCloud. Please try again.');
     }
   };
 
@@ -206,11 +261,39 @@ const NoteViewScreen: React.FC<NoteViewScreenProps> = ({ navigation, route }) =>
           title="Export as Markdown" 
           icon="export"
         />
+        {Platform.OS === 'ios' && iCloudAvailable && iCloudSyncEnabled && (
+          <Menu.Item 
+            onPress={() => {
+              setMenuVisible(false);
+              syncToiCloud();
+            }} 
+            title={iCloudSynced ? "Update iCloud Sync" : "Sync to iCloud"} 
+            icon="cloud-upload"
+            disabled={isSyncing}
+          />
+        )}
       </Menu>
+      
+      {/* Header with iCloud status */}
+      <Surface style={styles.headerSurface}>
+        <Text style={styles.headerTitle}>{note.title}</Text>
+        {Platform.OS === 'ios' && iCloudAvailable && iCloudSyncEnabled && (
+          <View style={styles.syncStatusContainer}>
+            <IconButton
+              icon={iCloudSynced ? "cloud-check" : "cloud-sync"}
+              size={20}
+              onPress={syncToiCloud}
+              disabled={isSyncing}
+              iconColor={iCloudSynced ? "#4CAF50" : "#9E9E9E"}
+            />
+            {isSyncing && <ActivityIndicator size={16} color="#6200ee" style={styles.syncingIndicator} />}
+          </View>
+        )}
+      </Surface>
       
       {/* Tab selector */}
       {!isEditing && (
-        <View style={styles.tabContainer}>
+        <Surface style={styles.tabContainer}>
           <Chip
             selected={activeTab === 'content'}
             onPress={() => setActiveTab('content')}
@@ -235,19 +318,20 @@ const NoteViewScreen: React.FC<NoteViewScreenProps> = ({ navigation, route }) =>
           >
             Mind Map
           </Chip>
-        </View>
+        </Surface>
       )}
       
       <ScrollView style={styles.scrollView}>
         {isEditing ? (
           // Edit mode
-          <View style={styles.editContainer}>
+          <Surface style={styles.editContainer}>
             <TextInput
               label="Title"
               value={editedTitle}
               onChangeText={setEditedTitle}
               style={styles.titleInput}
               mode="outlined"
+              theme={{ colors: { primary: '#6200ee' } }}
             />
             
             <TextInput
@@ -258,6 +342,7 @@ const NoteViewScreen: React.FC<NoteViewScreenProps> = ({ navigation, route }) =>
               style={styles.contentInput}
               mode="outlined"
               numberOfLines={10}
+              theme={{ colors: { primary: '#6200ee' } }}
             />
             
             <View style={styles.buttonContainer}>
@@ -267,6 +352,7 @@ const NoteViewScreen: React.FC<NoteViewScreenProps> = ({ navigation, route }) =>
                 style={styles.button}
                 loading={isSaving}
                 disabled={isSaving}
+                labelStyle={styles.buttonLabel}
               >
                 Save Changes
               </Button>
@@ -276,12 +362,13 @@ const NoteViewScreen: React.FC<NoteViewScreenProps> = ({ navigation, route }) =>
                 onPress={cancelEditing}
                 style={styles.button}
                 disabled={isSaving}
+                labelStyle={styles.buttonLabel}
               >
                 Cancel
               </Button>
             </View>
             
-            <View style={styles.markdownHelpContainer}>
+            <Surface style={styles.markdownHelpContainer}>
               <Text style={styles.markdownHelpTitle}>Markdown Tips:</Text>
               <Text style={styles.markdownHelpText}>
                 # Header 1{'\n'}
@@ -292,12 +379,12 @@ const NoteViewScreen: React.FC<NoteViewScreenProps> = ({ navigation, route }) =>
                 1. Numbered item{'\n'}
                 [Link](https://example.com)
               </Text>
-            </View>
-          </View>
+            </Surface>
+          </Surface>
         ) : (
           // View mode
           <View style={styles.viewContainer}>
-            <View style={styles.metaContainer}>
+            <Surface style={styles.metaContainer}>
               <Text style={styles.dateText}>
                 Created: {formatDate(note.createdAt)}
               </Text>
@@ -306,30 +393,30 @@ const NoteViewScreen: React.FC<NoteViewScreenProps> = ({ navigation, route }) =>
                   Updated: {formatDate(note.updatedAt)}
                 </Text>
               )}
-            </View>
+            </Surface>
             
             {activeTab === 'content' && (
-              <View style={styles.markdownContainer}>
+              <Surface style={styles.markdownContainer}>
                 <Markdown style={markdownStyles}>
                   {note.content}
                 </Markdown>
-              </View>
+              </Surface>
             )}
             
             {activeTab === 'summary' && (
-              <View style={styles.summaryContainer}>
+              <Surface style={styles.summaryContainer}>
                 <Text style={styles.summaryTitle}>Summary</Text>
                 <Divider style={styles.divider} />
                 <Text style={styles.summaryText}>{summary}</Text>
-              </View>
+              </Surface>
             )}
             
             {activeTab === 'mindmap' && (
-              <View style={styles.mindmapContainer}>
+              <Surface style={styles.mindmapContainer}>
                 <Text style={styles.mindmapTitle}>Mind Map</Text>
                 <Divider style={styles.divider} />
                 <MindMap content={note.content} title={note.title} />
-              </View>
+              </Surface>
             )}
             
             <Button
@@ -337,6 +424,7 @@ const NoteViewScreen: React.FC<NoteViewScreenProps> = ({ navigation, route }) =>
               icon="pencil"
               onPress={() => setIsEditing(true)}
               style={styles.editButton}
+              labelStyle={styles.buttonLabel}
             >
               Edit Note
             </Button>
@@ -410,6 +498,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  headerSurface: {
+    padding: 16,
+    elevation: 4,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#6200ee',
+    flex: 1,
+  },
+  syncStatusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  syncingIndicator: {
+    marginLeft: -8,
+  },
   scrollView: {
     flex: 1,
   },
@@ -418,12 +527,16 @@ const styles = StyleSheet.create({
   },
   editContainer: {
     padding: 16,
+    margin: 16,
+    borderRadius: 8,
+    elevation: 2,
   },
   metaContainer: {
     marginBottom: 16,
     padding: 12,
     backgroundColor: '#e8eaf6',
     borderRadius: 8,
+    elevation: 1,
   },
   dateText: {
     fontSize: 12,
@@ -435,16 +548,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 16,
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
+    elevation: 1,
   },
   summaryContainer: {
     backgroundColor: '#fff',
     borderRadius: 8,
     padding: 16,
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
+    elevation: 1,
   },
   summaryTitle: {
     fontSize: 18,
@@ -462,8 +573,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 16,
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
+    elevation: 1,
     minHeight: 300,
   },
   mindmapTitle: {
@@ -494,9 +604,15 @@ const styles = StyleSheet.create({
   button: {
     flex: 1,
     marginHorizontal: 4,
+    borderRadius: 8,
+  },
+  buttonLabel: {
+    fontSize: 14,
+    fontWeight: '500',
   },
   editButton: {
     marginTop: 16,
+    borderRadius: 8,
   },
   markdownHelpContainer: {
     marginTop: 16,

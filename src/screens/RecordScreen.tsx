@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert, Platform } from 'react-native';
-import { Button, Text, TextInput, ActivityIndicator, Snackbar } from 'react-native-paper';
+import { Button, Text, TextInput, ActivityIndicator, Snackbar, Surface, IconButton } from 'react-native-paper';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,6 +11,7 @@ import Voice, {
 } from 'react-native-voice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import WatchConnectivityManager, { WatchConnectivityEvents, WatchNoteData } from '../utils/WatchConnectivity';
+import iCloudStorage from '../utils/iCloudStorage';
 
 type RecordScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Record'>;
@@ -24,6 +25,24 @@ const RecordScreen: React.FC<RecordScreenProps> = ({ navigation }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [watchSnackbarVisible, setWatchSnackbarVisible] = useState(false);
   const [watchNoteReceived, setWatchNoteReceived] = useState<WatchNoteData | null>(null);
+  const [iCloudAvailable, setICloudAvailable] = useState(false);
+  const [iCloudSyncEnabled, setICloudSyncEnabled] = useState(true);
+
+  // Check iCloud availability
+  useEffect(() => {
+    const checkICloud = async () => {
+      if (Platform.OS === 'ios') {
+        const available = await iCloudStorage.isAvailable();
+        setICloudAvailable(available);
+        
+        // Get user preference for iCloud sync
+        const syncPref = await AsyncStorage.getItem('iCloudSyncEnabled');
+        setICloudSyncEnabled(syncPref !== 'false');
+      }
+    };
+    
+    checkICloud();
+  }, []);
 
   // Initialize voice recognition
   useEffect(() => {
@@ -167,6 +186,11 @@ const RecordScreen: React.FC<RecordScreenProps> = ({ navigation }) => {
       // Save to AsyncStorage
       await AsyncStorage.setItem('notes', JSON.stringify(updatedNotes));
       
+      // Save to iCloud if available and enabled
+      if (Platform.OS === 'ios' && iCloudAvailable && iCloudSyncEnabled) {
+        await iCloudStorage.saveNote(note);
+      }
+      
       setIsSaving(false);
       
       // Navigate to the note view
@@ -175,6 +199,18 @@ const RecordScreen: React.FC<RecordScreenProps> = ({ navigation }) => {
       console.error('Error saving note:', error);
       setIsSaving(false);
       Alert.alert('Error', 'Failed to save note. Please try again.');
+    }
+  };
+
+  // Toggle iCloud sync
+  const toggleICloudSync = async () => {
+    const newValue = !iCloudSyncEnabled;
+    setICloudSyncEnabled(newValue);
+    await AsyncStorage.setItem('iCloudSyncEnabled', newValue ? 'true' : 'false');
+    
+    if (newValue && iCloudAvailable) {
+      // Sync all notes to iCloud
+      iCloudStorage.syncAllNotes();
     }
   };
 
@@ -217,23 +253,39 @@ const RecordScreen: React.FC<RecordScreenProps> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <Surface style={styles.headerSurface}>
+        <Text style={styles.headerTitle}>Record Note</Text>
+        {Platform.OS === 'ios' && iCloudAvailable && (
+          <IconButton
+            icon={iCloudSyncEnabled ? "cloud" : "cloud-off-outline"}
+            size={24}
+            onPress={toggleICloudSync}
+            style={styles.iCloudButton}
+            iconColor={iCloudSyncEnabled ? "#4CAF50" : "#9E9E9E"}
+          />
+        )}
+      </Surface>
+      
       <ScrollView style={styles.scrollView}>
-        <TextInput
-          label="Note Title"
-          value={title}
-          onChangeText={setTitle}
-          style={styles.titleInput}
-          mode="outlined"
-        />
+        <Surface style={styles.inputSurface}>
+          <TextInput
+            label="Note Title"
+            value={title}
+            onChangeText={setTitle}
+            style={styles.titleInput}
+            mode="outlined"
+            theme={{ colors: { primary: '#6200ee' } }}
+          />
+        </Surface>
         
-        <View style={styles.transcriptionContainer}>
+        <Surface style={styles.transcriptionSurface}>
           <Text style={styles.sectionTitle}>Transcription:</Text>
           <ScrollView style={styles.transcriptionScroll}>
             <Text style={styles.transcriptionText}>
               {transcription || 'Your transcription will appear here...'}
             </Text>
           </ScrollView>
-        </View>
+        </Surface>
         
         <View style={styles.controlsContainer}>
           {isProcessing ? (
@@ -246,12 +298,13 @@ const RecordScreen: React.FC<RecordScreenProps> = ({ navigation }) => {
                 onPress={isRecording ? stopRecording : startRecording}
                 style={[styles.button, isRecording ? styles.stopButton : styles.recordButton]}
                 contentStyle={styles.buttonContent}
+                labelStyle={styles.buttonLabel}
               >
                 {isRecording ? "Stop Recording" : "Start Recording"}
               </Button>
               
               {transcription.trim() && (
-                <>
+                <View style={styles.actionButtonsContainer}>
                   <Button
                     mode="outlined"
                     icon="content-save"
@@ -260,6 +313,7 @@ const RecordScreen: React.FC<RecordScreenProps> = ({ navigation }) => {
                     contentStyle={styles.buttonContent}
                     loading={isSaving}
                     disabled={isSaving}
+                    labelStyle={styles.buttonLabel}
                   >
                     Save Note
                   </Button>
@@ -270,10 +324,11 @@ const RecordScreen: React.FC<RecordScreenProps> = ({ navigation }) => {
                     onPress={clearTranscription}
                     style={[styles.button, styles.clearButton]}
                     contentStyle={styles.buttonContent}
+                    labelStyle={styles.clearButtonLabel}
                   >
                     Clear
                   </Button>
-                </>
+                </View>
               )}
             </>
           )}
@@ -289,6 +344,7 @@ const RecordScreen: React.FC<RecordScreenProps> = ({ navigation }) => {
           onPress: handleSaveWatchNote,
         }}
         duration={10000}
+        style={styles.snackbar}
       >
         Note received from Apple Watch: {watchNoteReceived?.title || 'Untitled'}
       </Snackbar>
@@ -301,23 +357,42 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
+  headerSurface: {
+    padding: 16,
+    elevation: 4,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#6200ee',
+  },
+  iCloudButton: {
+    margin: 0,
+  },
   scrollView: {
     flex: 1,
     padding: 16,
   },
-  titleInput: {
+  inputSurface: {
+    padding: 16,
+    borderRadius: 8,
     marginBottom: 16,
+    elevation: 2,
     backgroundColor: '#fff',
   },
-  transcriptionContainer: {
+  titleInput: {
     backgroundColor: '#fff',
-    borderRadius: 8,
+  },
+  transcriptionSurface: {
     padding: 16,
+    borderRadius: 8,
     marginBottom: 16,
-    minHeight: 200,
-    maxHeight: 300,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
+    elevation: 2,
+    backgroundColor: '#fff',
   },
   sectionTitle: {
     fontSize: 16,
@@ -326,7 +401,8 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   transcriptionScroll: {
-    flex: 1,
+    minHeight: 200,
+    maxHeight: 300,
   },
   transcriptionText: {
     fontSize: 16,
@@ -335,14 +411,24 @@ const styles = StyleSheet.create({
   },
   controlsContainer: {
     marginTop: 16,
+    gap: 16,
+  },
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     gap: 12,
   },
   button: {
     marginVertical: 8,
     borderRadius: 8,
+    flex: 1,
   },
   buttonContent: {
     height: 56,
+  },
+  buttonLabel: {
+    fontSize: 16,
+    fontWeight: '500',
   },
   recordButton: {
     backgroundColor: '#6200ee',
@@ -352,6 +438,14 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     borderColor: '#f44336',
+  },
+  clearButtonLabel: {
+    color: '#f44336',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  snackbar: {
+    marginBottom: 16,
   },
 });
 
