@@ -10,15 +10,19 @@
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
+		62FCA4D4578C0279EB09F445 /* libPods-HermitWeekend.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 30DDD45A13EDE02FD78FA849 /* libPods-HermitWeekend.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		063B924EF01086CEE7C427D2 /* Pods-HermitWeekend.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HermitWeekend.release.xcconfig"; path = "Target Support Files/Pods-HermitWeekend/Pods-HermitWeekend.release.xcconfig"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* HermitWeekend.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HermitWeekend.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = HermitWeekend/AppDelegate.h; sourceTree = "<group>"; };
 		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = HermitWeekend/AppDelegate.mm; sourceTree = "<group>"; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = HermitWeekend/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = HermitWeekend/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = HermitWeekend/main.m; sourceTree = "<group>"; };
+		30DDD45A13EDE02FD78FA849 /* libPods-HermitWeekend.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-HermitWeekend.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA9723FCDD649A73045BA59B /* Pods-HermitWeekend.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HermitWeekend.debug.xcconfig"; path = "Target Support Files/Pods-HermitWeekend/Pods-HermitWeekend.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -26,6 +30,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				62FCA4D4578C0279EB09F445 /* libPods-HermitWeekend.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -44,11 +49,21 @@
 			name = HermitWeekend;
 			sourceTree = "<group>";
 		};
+		46294EDB09C77A9B3B6697B0 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				30DDD45A13EDE02FD78FA849 /* libPods-HermitWeekend.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
 				13B07FAE1A68108700A75B9A /* HermitWeekend */,
 				83CBBA001A601CBA00E9B192 /* Products */,
+				858DFA122F605F092AEE018F /* Pods */,
+				46294EDB09C77A9B3B6697B0 /* Frameworks */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -63,6 +78,15 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		858DFA122F605F092AEE018F /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				AA9723FCDD649A73045BA59B /* Pods-HermitWeekend.debug.xcconfig */,
+				063B924EF01086CEE7C427D2 /* Pods-HermitWeekend.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -70,6 +94,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "HermitWeekend" */;
 			buildPhases = (
+				7ED68F9F61B1620BF4DEDAEB /* [CP] Check Pods Manifest.lock */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
@@ -141,6 +166,28 @@
 			shellPath = /bin/sh;
 			shellScript = "set -e\n\nexport NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh\n";
 		};
+		7ED68F9F61B1620BF4DEDAEB /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-HermitWeekend-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -158,10 +205,12 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = AA9723FCDD649A73045BA59B /* Pods-HermitWeekend.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2V8LZ2444Y;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = HermitWeekend/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -183,10 +232,12 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 063B924EF01086CEE7C427D2 /* Pods-HermitWeekend.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2V8LZ2444Y;
 				INFOPLIST_FILE = HermitWeekend/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -363,4 +414,4 @@
 /* End XCConfigurationList section */
 	};
 	rootObject = 83CBB9F71A601CBA00E9B192 /* Project object */;
-} 
+}
