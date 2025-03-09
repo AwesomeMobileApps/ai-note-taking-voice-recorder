@@ -1,13 +1,9 @@
 platform :ios, '13.0'
 
-project 'HermitWeekend.xcodeproj'
-
 target 'HermitWeekend' do
-  # Comment the next line if you don't want to use dynamic frameworks
-  # use_frameworks!
-
-  # Basic React Native pods
+  # React Native pods
   pod 'FBLazyVector', :path => "../node_modules/react-native/Libraries/FBLazyVector"
+  pod 'FBReactNativeSpec', :path => "../node_modules/react-native/React/FBReactNativeSpec"
   pod 'RCTRequired', :path => "../node_modules/react-native/Libraries/RCTRequired"
   pod 'RCTTypeSafety', :path => "../node_modules/react-native/Libraries/TypeSafety"
   pod 'React', :path => '../node_modules/react-native/'
@@ -37,8 +33,13 @@ target 'HermitWeekend' do
   pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
   pod 'RCT-Folly', :podspec => '../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec'
 
-  # Note: WatchConnectivity is a native framework and will be linked automatically
-  # when building the app. No need to include it as a pod.
+  # Custom dependencies
+  pod 'RNVoice', :path => '../node_modules/react-native-voice'
+  pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
+  pod 'RNFS', :path => '../node_modules/react-native-fs'
+  pod 'RNCAsyncStorage', :path => '../node_modules/@react-native-async-storage/async-storage'
+  pod 'react-native-safe-area-context', :path => '../node_modules/react-native-safe-area-context'
+  pod 'RNScreens', :path => '../node_modules/react-native-screens'
 
   post_install do |installer|
     installer.pods_project.targets.each do |target|
