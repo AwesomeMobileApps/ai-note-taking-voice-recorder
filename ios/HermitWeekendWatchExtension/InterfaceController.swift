@@ -23,11 +23,13 @@ class InterfaceController: WKInterfaceController, AVAudioRecorderDelegate, SFSpe
     // Recording state
     private var isRecording = false
     private var transcription = ""
+    private var recordingStartTime: Date?
+    private var batteryCheckTimer: Timer?
     
     override func awake(withContext context: Any?) {
         super.awake(withContext: context)
         
-        // Configure interface objects
+        // Apply custom styling
         setupUI()
         
         // Set up speech recognizer
@@ -52,22 +54,47 @@ class InterfaceController: WKInterfaceController, AVAudioRecorderDelegate, SFSpe
     override func willActivate() {
         super.willActivate()
         // This method is called when the controller is about to be visible to the user
+        
+        // Add haptic feedback when the app becomes active
+        WKInterfaceDevice.current().play(.click)
     }
     
     override func didDeactivate() {
         super.didDeactivate()
         // This method is called when the controller is no longer visible
+        
+        // Stop any ongoing recording if the app is deactivated
+        if isRecording {
+            stopRecording()
+        }
+        
+        // Invalidate battery check timer
+        batteryCheckTimer?.invalidate()
     }
     
-    // Set up the UI elements
+    // Set up the UI elements with enhanced styling
     private func setupUI() {
+        // Configure status label
         statusLabel.setText("Ready to record")
+        
+        // Configure transcription label
         transcriptionLabel.setText("Tap Record to start")
+        
+        // Configure record button with custom styling
+        recordButton.setBackgroundColor(UIColor(red: 0.38, green: 0, blue: 0.93, alpha: 1.0))
+        recordButton.setCornerRadius(16.0)
+        
+        // Configure send button with custom styling
+        sendButton.setBackgroundColor(UIColor(red: 0, green: 0.48, blue: 1.0, alpha: 1.0))
+        sendButton.setCornerRadius(16.0)
         sendButton.setEnabled(false)
     }
     
     // Handle record button tap
     @IBAction func recordButtonTapped() {
+        // Add haptic feedback
+        WKInterfaceDevice.current().play(.click)
+        
         if isRecording {
             stopRecording()
         } else {
@@ -77,6 +104,9 @@ class InterfaceController: WKInterfaceController, AVAudioRecorderDelegate, SFSpe
     
     // Handle send button tap
     @IBAction func sendButtonTapped() {
+        // Add haptic feedback
+        WKInterfaceDevice.current().play(.click)
+        
         // Show confirmation dialog
         let actions: [WKAlertAction] = [
             WKAlertAction(title: "Cancel", style: .cancel, handler: {}),
@@ -104,12 +134,12 @@ class InterfaceController: WKInterfaceController, AVAudioRecorderDelegate, SFSpe
         let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         audioFileURL = documentsPath.appendingPathComponent("recording.wav")
         
-        // Configure audio settings
+        // Configure audio settings with battery optimization
         let settings: [String: Any] = [
             AVFormatIDKey: Int(kAudioFormatLinearPCM),
-            AVSampleRateKey: 16000.0,
+            AVSampleRateKey: 8000.0, // Lower sample rate for battery efficiency
             AVNumberOfChannelsKey: 1,
-            AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
+            AVEncoderAudioQualityKey: AVAudioQuality.medium.rawValue // Medium quality for battery efficiency
         ]
         
         // Create and configure audio recorder
@@ -149,11 +179,37 @@ class InterfaceController: WKInterfaceController, AVAudioRecorderDelegate, SFSpe
         // Start recording
         audioRecorder?.record()
         isRecording = true
+        recordingStartTime = Date()
+        
+        // Set up battery check timer
+        batteryCheckTimer = Timer.scheduledTimer(timeInterval: 30.0, target: self, selector: #selector(checkBatteryAndRecordingLength), userInfo: nil, repeats: true)
         
         // Update UI
         statusLabel.setText("Recording...")
         recordButton.setTitle("Stop")
+        recordButton.setBackgroundColor(UIColor(red: 0.95, green: 0.27, blue: 0.27, alpha: 1.0)) // Red for stop
         sendButton.setEnabled(false)
+    }
+    
+    // Check battery level and recording length to optimize battery usage
+    @objc private func checkBatteryAndRecordingLength() {
+        // Check if recording has been going on for too long
+        if let startTime = recordingStartTime, Date().timeIntervalSince(startTime) > 120 { // 2 minutes max
+            stopRecording()
+            statusLabel.setText("Recording stopped to save battery")
+            
+            // Add haptic feedback
+            WKInterfaceDevice.current().play(.notification)
+        }
+        
+        // Check if transcription is getting too long
+        if transcription.count > 500 {
+            stopRecording()
+            statusLabel.setText("Recording paused - text limit reached")
+            
+            // Add haptic feedback
+            WKInterfaceDevice.current().play(.notification)
+        }
     }
     
     // Stop recording and finalize transcription
@@ -166,13 +222,20 @@ class InterfaceController: WKInterfaceController, AVAudioRecorderDelegate, SFSpe
         recognitionTask = nil
         recognitionRequest = nil
         
+        // Invalidate battery check timer
+        batteryCheckTimer?.invalidate()
+        
         // Update state
         isRecording = false
         
         // Update UI
         statusLabel.setText("Recording stopped")
         recordButton.setTitle("Record")
+        recordButton.setBackgroundColor(UIColor(red: 0.38, green: 0, blue: 0.93, alpha: 1.0)) // Purple for record
         sendButton.setEnabled(!transcription.isEmpty)
+        
+        // Add haptic feedback
+        WKInterfaceDevice.current().play(.success)
     }
     
     // Send the transcribed note to the iPhone app
@@ -193,6 +256,9 @@ class InterfaceController: WKInterfaceController, AVAudioRecorderDelegate, SFSpe
         // Update UI
         statusLabel.setText("Note sent to iPhone")
         
+        // Add haptic feedback
+        WKInterfaceDevice.current().play(.success)
+        
         // Reset for new recording
         transcription = ""
         transcriptionLabel.setText("Tap Record to start")
@@ -205,6 +271,9 @@ class InterfaceController: WKInterfaceController, AVAudioRecorderDelegate, SFSpe
         if !flag {
             stopRecording()
             statusLabel.setText("Recording failed")
+            
+            // Add haptic feedback for error
+            WKInterfaceDevice.current().play(.failure)
         }
     }
     

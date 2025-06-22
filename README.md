@@ -137,6 +137,18 @@ hermit-weekend/
 └── README.md              # Project documentation
 ```
 
+## Why I Didn't Use Expo
+There are several reasons why I didn't use Expo for this project:
+Native Module Requirements: This app requires several native modules like `react-native-voice` for speech recognition and WatchConnectivity for Apple Watch integration. While Expo now supports many native modules through config plugins, some advanced integrations (especially Apple Watch) still require a bare React Native workflow.
+
+
+Apple Watch Integration: Expo doesn't provide direct support for developing Apple Watch companion apps. For the Apple Watch functionality, we need direct access to native code and the ability to configure the Xcode project, which is limited in the Expo managed workflow.
+
+
+Custom Native Code: The app requires custom native code for the WatchConnectivity framework to enable communication between the iPhone app and the Apple Watch app.
+Full Control: For a production app with complex requirements like iCloud integration and Apple Watch support, having full control over the native code provides more flexibility.
+
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
