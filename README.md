@@ -106,6 +106,19 @@ To use the Apple Watch app:
 4. When finished, tap "Stop" and then "Send to iPhone"
 5. The note will appear in your iPhone app, where you can edit, summarize, and visualize it
 
+## Who Baked This?
+
+**Pierre-Henry Soria** — a super passionate and enthusiastic software engineer.
+A genuine lover of cheese, coffee, and chocolate.
+You can reach me at [PH7.me](https://PH7.me).
+
+Enjoying the project? **[Support me with a coffee](https://ko-fi.com/phenry)** — my go-to brew is an almond flat white.
+
+[![Pierre-Henry Soria](https://s.gravatar.com/avatar/a210fe61253c43c869d71eaed0e90149?s=200)](https://ph7.me "Pierre-Henry Soria’s personal website")
+
+[![@phenrysay][x-icon]](https://x.com/phenrysay "Follow Me on X") [![YouTube Tech Videos][youtube-icon]](https://www.youtube.com/@pH7Programming "My YouTube Tech Channel") [![pH-7][github-icon]](https://github.com/pH-7 "Follow Me on GitHub")
+
+
 ## Tech Stack
 
 - React Native
@@ -137,13 +150,20 @@ hermit-weekend/
 └── README.md              # Project documentation
 ```
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 ## Acknowledgments
 
 - React Native community
 - React Native Paper team
 - React Native Voice contributors
-- Apple WatchKit and WatchConnectivity frameworks 
+- Apple WatchKit and WatchConnectivity frameworks
+
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+
+<!-- GitHub's Markdown reference links -->
+[x-icon]: https://img.shields.io/badge/x-000000?style=for-the-badge&logo=x
+[youtube-icon]: https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white
+[github-icon]: https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white
